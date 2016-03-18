@@ -4,6 +4,8 @@ from pyrock import RTT, nameservice
 #from orogen.wrappers.Corba import *
 
 names = nameservice.names()
+print names
+
 task = nameservice.get('orogen_default_tut_brownian__Task') # last one usually is a logger
 print task.getName()
 
