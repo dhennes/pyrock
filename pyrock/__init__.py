@@ -1,5 +1,5 @@
-import sys
-sys.path.append('pyrock/build')
+import sys, os
+sys.path.append(os.path.join(__path__[0], 'build')) # TODO fix import hack
 
 import RTT
 import orogen
@@ -7,8 +7,7 @@ import orogen
 from omniORB import CORBA
 _orb = CORBA.ORB_init([], CORBA.ORB_ID)
 
-from nameservice import NameService
+from .nameservice import NameService
 nameservice = NameService(_orb)
 
-# print nameservice.get_names()
-# task = nameservice.get('orogen_default_lidar_velodyne__VelodynePointcloud')
+import base
