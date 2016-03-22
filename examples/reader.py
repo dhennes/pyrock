@@ -29,9 +29,8 @@ while True:
     try:
         new, res = channel.read(False)
         if new is pyrock.RTT.corba.CNewData:
-            v = res.value(CORBA.TypeCode(pyrock.message_driver.Message))
-            if v is not None:
-                print v
+            msg = res.value()
+            print('[%d] %s'%(msg.time.microseconds, msg.content))
 
     except KeyboardInterrupt:
         channel.disconnect()
