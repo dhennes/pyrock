@@ -2,7 +2,8 @@ ifndef AUTOPROJ_CURRENT_ROOT
 $(error AUTOPROJ_CURRENT_ROOT is not set)
 endif
 
-BUILD_DIR := pyrock/build
+PACKAGE := pyrock._gen
+BUILD_DIR := pyrock/_gen
 
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 ROCK_INCLUDE_DIR := $(AUTOPROJ_CURRENT_ROOT)/install/include
@@ -19,8 +20,7 @@ copy_messages: $(IDL_DIR)
 	find . -name \*.idl -exec cp --parents {} $(IDL_DIR) \;
 
 omniorbpy: $(BUILD_DIR)
-	cd $(BUILD_DIR) && \
-	find $(IDL_DIR) -name \*.idl -exec omniidl -v -I$(IDL_DIR) -bpython {} \;
+	omniidl -v -I$(IDL_DIR) -bpython -Wbpackage=$(PACKAGE) `find $(IDL_DIR) -name \*.idl`
 
 $(IDL_DIR):
 	mkdir -p $(IDL_DIR)

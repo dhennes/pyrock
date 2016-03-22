@@ -1,8 +1,8 @@
 import time as _time
 
-from . import orogen
+import pyrock
 
-class Time(orogen.base.Corba.Time):
+class Time(pyrock.base.Time):
 
     @staticmethod
     def now():
