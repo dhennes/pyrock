@@ -2,6 +2,7 @@ import time as _time
 
 import pyrock
 
+
 class Time(pyrock.base.Time):
 
     @staticmethod

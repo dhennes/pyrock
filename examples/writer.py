@@ -1,4 +1,5 @@
-import time, sys
+import time
+import sys
 
 
 import omniORB.any as _any
@@ -6,13 +7,13 @@ import pyrock
 
 
 task = pyrock.nameservice.get('orogen_default_message_consumer__Task')
-print('Connected to %s'%task.getName())
+print('Connected to %s' % task.getName())
 
 if task.isRunning():
     task.stop()
 
 ports = task.ports()
-#print ports.getPortDescriptions()
+# print ports.getPortDescriptions()
 
 portname = 'messages'
 channel, policy = ports.buildChannelOutput(portname, pyrock.RTT.DEFAULT_POLICY)
@@ -35,7 +36,7 @@ while True:
         msg.content = 'test'
 
         print msg
-    
+
         channel.write(_any.to_any(msg))
         time.sleep(1)
     except KeyboardInterrupt:
