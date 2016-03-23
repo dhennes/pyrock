@@ -9,6 +9,8 @@ ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 ROCK_INCLUDE_DIR := $(AUTOPROJ_CURRENT_ROOT)/install/include
 IDL_DIR := $(ROOT_DIR)/idl
 
+.PHONY: all test clean
+
 all: copy_rtt copy_messages omniorbpy
 
 copy_rtt: $(IDL_DIR)
@@ -27,6 +29,9 @@ $(IDL_DIR):
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
+
+test:
+	PYTHONPATH=$(ROOT_DIR):${PYTHONPATH} python test/test_pyrock.py
 
 clean:
 	rm -rf $(IDL_DIR)
