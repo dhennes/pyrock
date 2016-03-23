@@ -8,3 +8,5 @@ class Time(pyrock.base.Time):
     def now():
         usecs = long(_time.time() * 1000000L)
         return Time(microseconds=usecs)
+
+del(pyrock)

@@ -117,7 +117,9 @@ import _gen.orogen
 _walk(_gen.orogen)
 
 # import overwrites
-import base
+from _base import Time
+base.Time = Time
+del(Time)
 
 
 # RTT
