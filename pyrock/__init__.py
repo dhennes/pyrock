@@ -133,6 +133,8 @@ from _gen import RTT
 RTT.DEFAULT_POLICY = RTT.corba.CConnPolicy(
     RTT.corba.CData, False, RTT.corba.CLockFree, False, 1, 1, 1, '')
 
+def create_default_policy():
+    return RTT.corba.CConnPolicy(RTT.corba.CData, False, RTT.corba.CLockFree, False, 1, 1, 1, '')
 
 # init nameservice
 _orb = omniORB.CORBA.ORB_init([], omniORB.CORBA.ORB_ID)
