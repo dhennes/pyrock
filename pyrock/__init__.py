@@ -122,10 +122,10 @@ def _dict_from_desc(desc):
 import _gen.orogen
 _walk(_gen.orogen)
 
-# import overwrites
-from _base import Time
-base.Time = Time
-del(Time)
+
+# overwrites for base
+import _base
+del(_base)
 
 
 # RTT
@@ -141,3 +141,5 @@ _orb = omniORB.CORBA.ORB_init([], omniORB.CORBA.ORB_ID)
 
 from .nameservice import NameService
 nameservice = NameService(_orb)
+
+from .proxy import TaskProxy, Subscription

@@ -1,19 +1,19 @@
-import time
-import sys
-
-
-import omniORB.any as _any
-import omniORB.CORBA as CORBA
 import pyrock
 
+import sys
 from collections import deque
 
 
 class TaskProxy:
 
     def __init__(self, taskname):
-        self._task = pyrock.nameservice.get(taskname)
-        desc = self._task.ports().getPortDescriptions()
+        self.name = taskname
+        self._task = pyrock.nameservice.get(self.name)
+        try:
+            desc = self._task.ports().getPortDescriptions()
+        except Exception as e:
+            print(self.name, e)
+            desc = {}
         self.output_ports = {
             p.name: p.type_name for p in desc if p.type is pyrock.RTT.corba.COutput}
         self.input_ports = {
@@ -28,14 +28,27 @@ class TaskProxy:
             portname, callback, self.output_ports[portname], channel, policy)
         self.subscriptions.append(sub)
 
+    def is_connected(self):
+        try:
+            self._task.isRunning()
+        except pyrock.omniORB.CORBA.TRANSIENT:
+            return False
+        return True
+
     def configure(self):
         self._task.configure()
 
+    def is_configured(self):
+        return self._task.isConfigured()
+
     def start(self):
-        self._task.configure()
+        self._task.start()
 
     def stop(self):
-        self._task.configure()
+        self._task.stop()
+
+    def is_running(self):
+        return self._task.isRunning()
 
     def spin_once(self):
         sub = self.subscriptions.popleft()
@@ -71,22 +84,3 @@ class Subscription:
         return 'Subscription \'%s\' (%s) -> %s' % (self.portname,
                                                    self.type_name,
                                                    self.callback.__name__)
-
-
-def message_callback(msg):
-    print('[%d] %s' % (msg.time.microseconds, msg.content))
-
-
-def state_callback(state):
-    print('state: %d' % state)
-
-
-task = TaskProxy('orogen_default_message_producer__Task')
-task.subscripe('messages', message_callback)
-task.subscripe('state', state_callback)
-
-
-task.configure()
-task.start()
-
-task.spin()

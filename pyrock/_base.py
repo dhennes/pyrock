@@ -1,13 +1,16 @@
-import time as _time
+from time import time
+from datetime import datetime
 
 import pyrock
 
+@staticmethod
+def now():
+    usecs = long(time() * 1000000L)
+    return pyrock.base.Time(microseconds=usecs)
+pyrock.base.Time.now = now
+del(now)
 
-class Time(pyrock.base.Time):
-
-    @staticmethod
-    def now():
-        usecs = long(_time.time() * 1000000L)
-        return Time(microseconds=usecs)
-
-del(pyrock)
+def repr(self):
+    return datetime.fromtimestamp(self.microseconds/1000000.).strftime('%Y-%m-%d %H:%M:%S.%f')
+pyrock.base.Time.__repr__ = repr
+del(repr)
