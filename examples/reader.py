@@ -1,38 +1,13 @@
-import time
-import sys
-
-
-import omniORB.any as _any
-import omniORB.CORBA as CORBA
+from __future__ import print_function
 import pyrock
 
-task = pyrock.nameservice.get('orogen_default_message_producer__Task')
-print('Connected to %s' % task.getName())
+proxy = pyrock.TaskProxy('orogen_default_message_producer__Task')
+proxy.subscripe('messages', lambda msg: print(msg.content, msg.time.__repr__()))
 
-if task.isRunning():
-    task.stop()
+if not proxy.is_configured():
+    proxy.configure()
 
-ports = task.ports()
-# print ports.getPortDescriptions()
+if not proxy.is_running():
+    proxy.start()
 
-portname = 'messages'
-channel, policy = ports.buildChannelInput(portname, pyrock.RTT.DEFAULT_POLICY)
-
-task.configure()
-if not task.isConfigured():
-    raise Exception('Task is not yet configured')
-
-task.start()
-if not task.isRunning():
-    raise Exception('Task is not running')
-
-while True:
-    try:
-        new, res = channel.read(False)
-        if new is pyrock.RTT.corba.CNewData:
-            msg = res.value()
-            print('[%d] %s' % (msg.time.microseconds, msg.content))
-
-    except KeyboardInterrupt:
-        channel.disconnect()
-        sys.exit()
+proxy.spin()
