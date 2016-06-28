@@ -35,6 +35,12 @@ class TaskProxy:
             return False
         return True
 
+    def state(self):
+        return self._task.getTaskState()
+
+    def cleanup(self):
+        self._task.cleanup()
+
     def configure(self):
         self._task.configure()
 
