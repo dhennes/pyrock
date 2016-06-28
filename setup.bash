@@ -12,10 +12,20 @@ function _complete_rocktask {
         COMPREPLY=($(compgen -W "$opts" -- ${arg}))
     elif [[ $COMP_CWORD == 2 ]]; then
         case ${COMP_WORDS[1]} in
-            # complete on task name
             info|start|stop|cleanup|configure)
-                opts=`rocktask list 2> /dev/null`
-                COMPREPLY=($(compgen -W "$opts" -- ${arg}))                
+                if [[ ${arg} =~ \-\-.* ]]; then
+                    opts="--help"
+                else
+                    # complete on task name
+                    opts=`rocktask list 2> /dev/null`
+                fi
+                COMPREPLY=($(compgen -W "$opts" -- ${arg}))
+                ;;
+            list)
+                if [[ ${arg} =~ \-\-.* ]]; then
+                    opts="--state --help"
+                fi
+                COMPREPLY=($(compgen -W "$opts" -- ${arg}))
                 ;;
         esac
     fi
