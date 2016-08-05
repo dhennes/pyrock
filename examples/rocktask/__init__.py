@@ -1,10 +1,18 @@
+from __future__ import print_function
+import sys
 import argparse
+import json
 
 import pyrock
 
 
+class DictEncoder(json.JSONEncoder):
+    def default(self, o):
+        return o.__dict__
+
+
 def ports2str(ports):
-    return '\n  - '.join([''] + ['%s [%s]' % (n, t) for n, t in ports.iteritems()])
+    return '\n  - '.join([''] + ['%s [%s]' % (p.name, p.type_name) for p in ports])
 
 
 def cmd_call(taskname, command):
@@ -22,6 +30,14 @@ def cmd_list(state=False):
         print('\n'.join(names))
 
 
+def cmd_ports(taskname, porttype):
+    task = pyrock.TaskProxy(taskname)
+    portnames = [p.name for p in task.ports.values() if p.port_type == porttype]
+    if not portnames:
+        return
+    print('\n'.join(portnames))
+
+
 def cmd_info(taskname):
     task = pyrock.TaskProxy(taskname)
     print("""Task [%s]
@@ -31,7 +47,15 @@ State: %s
 Input ports:%s
 
 Output ports:%s
-""" % (task.name, task.state(), ports2str(task.input_ports), ports2str(task.output_ports)))
+""" % (task.name, task.state(),
+       ports2str([p for p in task.ports.values() if p.port_type == pyrock.Port.CInput]),
+       ports2str([p for p in task.ports.values() if p.port_type == pyrock.Port.COutput])))
+
+
+def cmd_echo(taskname, portname, indent=None):
+    proxy = pyrock.TaskProxy(taskname)
+    proxy.subscripe(portname, lambda msg: print(json.dumps(msg, cls=DictEncoder, indent=indent)))
+    proxy.spin()
 
 
 def main():
@@ -44,6 +68,14 @@ def main():
 
     # info
     subparsers.add_parser('info', help='print information about task').add_argument('taskname', help='taskname')
+
+    # ports
+    subparsers.add_parser('out', help='list all output ports').add_argument('taskname', help='taskname')
+    subparsers.add_parser('in', help='list all input ports').add_argument('taskname', help='taskname')
+    echo_parser = subparsers.add_parser('echo', help='print messages to screen')
+    echo_parser.add_argument('taskname', help='taskname')
+    echo_parser.add_argument('portname', help='portname')
+    echo_parser.add_argument('-p', '--pretty', dest='indent', const=4, default=None, action='store_const', help='pretty output')
 
     # start/stop/cleanup/configure
     subparsers.add_parser('start', help='start the task').add_argument('taskname', help='taskname')
@@ -59,10 +91,16 @@ def main():
             cmd_list(args.print_state)
         if args.command == 'info':
             cmd_info(args.taskname)
+        if args.command == 'out':
+            cmd_ports(args.taskname, pyrock.Port.COutput)
+        if args.command == 'in':
+            cmd_ports(args.taskname, pyrock.Port.CInput)
+        if args.command == 'echo':
+            cmd_echo(args.taskname, args.portname, indent=args.indent)
         if args.command in ['start', 'stop', 'cleanup', 'configure']:
             cmd_call(args.taskname, args.command)
-            
+
 
     except Exception as e:
-        print('Ups! Something went wrong!\n' + e)
+        sys.stderr.write('Ups! Something went wrong!\n' + str(e) + '\n')
         sys.exit(1)

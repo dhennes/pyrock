@@ -22,45 +22,40 @@ class TaskProxy(object):
     def __init__(self, taskname):
         self.name = taskname
         self._task = pyrock.nameservice.get(self.name)
-        try:
-            desc = self._task.ports().getPortDescriptions()
-        except Exception as e:
-            print(self.name, e)
-            desc = {}
-        
-        self.ports = [Port(self, p.name, p.type_name, p.type) for p in desc]
-            
-        # TODO: remove
-        self.output_ports = {
-            p.name: p.type_name for p in desc if p.type is pyrock.RTT.corba.COutput}
-        self.input_ports = {
-            p.name: p.type_name for p in desc if p.type is pyrock.RTT.corba.CInput}
 
         self.subscriptions = deque()
+        self.ports = {}
+
+        if self.is_connected():
+            desc = self._task.ports().getPortDescriptions()
+            self.ports = {p.name: Port(self, p.name, p.type_name, p.type) for p in desc}
+
 
     def subscripe(self, portname, callback, policy=pyrock.create_default_policy()):
-        assert portname in self.output_ports.keys()
+        # assert portname in self.output_ports.keys()
         channel, policy = self._task.ports().buildChannelInput(
             portname, policy)
         sub = Subscription(
-            portname, callback, self.output_ports[portname], channel, policy)
+            portname, callback, self.ports[portname], channel, policy)
         self.subscriptions.append(sub)
 
     def is_connected(self):
         try:
-            self._task.isRunning()
+            self._task.getTaskState()
         except pyrock.omniORB.CORBA.TRANSIENT:
             return False
         return True
+
+    def state(self):
+        if not self.is_connected():
+            return None
+        return self._task.getTaskState()
 
     def is_configured(self):
         return self._task.isConfigured()
 
     def is_running(self):
         return self._task.isRunning()
-
-    def state(self):
-        return self._task.getTaskState()
 
     def configure(self):
         return self._task.configure()
@@ -88,10 +83,10 @@ class TaskProxy(object):
                 self.spin_once()
 
         except KeyboardInterrupt:
-            self.teardown()
+            self._teardown()
             sys.exit()
 
-    def teardown(self):
+    def _teardown(self):
         map(lambda sub: sub.channel.disconnect(), self.subscriptions)
 
 

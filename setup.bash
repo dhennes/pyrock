@@ -8,11 +8,11 @@ function _complete_rocktask {
     arg="${COMP_WORDS[COMP_CWORD]}"
 
     if [[ $COMP_CWORD == 1 ]]; then
-        opts="list info start stop cleanup configure"
+        opts="list info start stop cleanup configure in out echo"
         COMPREPLY=($(compgen -W "$opts" -- ${arg}))
     elif [[ $COMP_CWORD == 2 ]]; then
         case ${COMP_WORDS[1]} in
-            info|start|stop|cleanup|configure)
+            info|start|stop|cleanup|configure|in|out|echo)
                 if [[ ${arg} =~ \-\-.* ]]; then
                     opts="--help"
                 else
@@ -28,6 +28,11 @@ function _complete_rocktask {
                 COMPREPLY=($(compgen -W "$opts" -- ${arg}))
                 ;;
         esac
+    elif [[ $COMP_CWORD == 3 ]]; then
+        if [[ ${COMP_WORDS[1]} == 'echo' ]]; then
+            opts=`rocktask out ${COMP_WORDS[2]} 2> /dev/null`
+            COMPREPLY=($(compgen -W "$opts" -- ${arg}))
+        fi
     fi
 }
 
