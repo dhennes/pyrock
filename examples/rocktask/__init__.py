@@ -32,7 +32,7 @@ def cmd_list(state=False):
 
 def cmd_ports(taskname, porttype):
     task = pyrock.TaskProxy(taskname)
-    portnames = [p.name for p in task.ports.values() if p.port_type == porttype]
+    portnames = [p.name for p in task.ports(port_type=porttype).values()]
     if not portnames:
         return
     print('\n'.join(portnames))
@@ -48,13 +48,13 @@ Input ports:%s
 
 Output ports:%s
 """ % (task.name, task.state(),
-       ports2str([p for p in task.ports.values() if p.port_type == pyrock.Port.CInput]),
-       ports2str([p for p in task.ports.values() if p.port_type == pyrock.Port.COutput])))
+       ports2str([p for p in task.ports(port_type=pyrock.Port.CInput).values()]),
+       ports2str([p for p in task.ports(port_type=pyrock.Port.COutput).values()])))
 
 
 def cmd_echo(taskname, portname, indent=None):
     proxy = pyrock.TaskProxy(taskname)
-    proxy.subscripe(portname, lambda msg: print(json.dumps(msg, cls=DictEncoder, indent=indent)))
+    proxy.subscriber(portname, lambda msg: print(json.dumps(msg, cls=DictEncoder, indent=indent)))
     proxy.spin()
 
 
