@@ -142,4 +142,4 @@ _orb = omniORB.CORBA.ORB_init([], omniORB.CORBA.ORB_ID)
 from .nameservice import NameService
 nameservice = NameService(_orb)
 
-from .proxy import TaskProxy, Port, Subscription
+from .proxy import TaskProxy, Port
