@@ -15,7 +15,7 @@ if not proxy.is_running():
 
 while True:
     msg = pyrock.message_driver.Message()
-    msg.time = pyrock.base.Time()
+    msg.time = pyrock.base.Time.now()
     msg.content = 'hello'
 
     print(msg)

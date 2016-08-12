@@ -7,6 +7,8 @@ import omniORB
 from omniORB import tcInternal as _tcInternal
 
 
+_class_repo = {}
+
 def _register_class(C, mod_path):
     obj = sys.modules[__name__]
     for name in mod_path:
@@ -29,7 +31,7 @@ def _register_class(C, mod_path):
         if len(args):
             C._old_ctor(self, *args)
         else:
-            d = _dict_from_desc(desc)
+            d = _dict_from_desc(desc, depth=0)
             d.update(**kwargs)
             C._old_ctor(self, **d)
 
@@ -38,7 +40,7 @@ def _register_class(C, mod_path):
     C.__module__ = obj.__name__
     C.__doc__ = desc  # TODO parsing of type description
     setattr(obj, C.__name__, C)
-
+    _class_repo[C._NP_RepositoryId] = C
 
 def _find_classes(module):
     for k, v in module.__dict__.iteritems():
@@ -57,7 +59,7 @@ def _walk(package):
                 _walk(v)
 
 
-def _dict_from_desc(desc):
+def _dict_from_desc(desc, depth):
     if type(desc) is int:
         tv = desc
         if tv is _tcInternal.tv_null:
@@ -93,21 +95,24 @@ def _dict_from_desc(desc):
         tv = desc[0]
         if tv is _tcInternal.tv_string:
             # TODO what are desc[1:] for in a tv_string description?
-            return _dict_from_desc(tv)
+            return _dict_from_desc(tv, depth+1)
 
         elif tv is _tcInternal.tv_alias and len(desc) is 4:
-            return _dict_from_desc(desc[3])
+            return _dict_from_desc(desc[3], depth+1)
 
         elif tv is _tcInternal.tv_struct:
             d = {}
             for i in range(4, len(desc), 2):
                 field_name, field_desc = desc[i:i+2]
-                d[field_name] = _dict_from_desc(field_desc)
-            return d
+                d[field_name] = _dict_from_desc(field_desc, depth+1)
+            if depth > 0:
+                return _class_repo[desc[1]._NP_RepositoryId](**d)
+            else:
+                return d
 
         elif tv in [_tcInternal.tv_sequence, _tcInternal.tv_array] and (len(desc) is 3 and
                                                                    type(desc[2]) is int):
-            return [_dict_from_desc(desc[1])] * desc[2]
+            return [_dict_from_desc(desc[1], depth+1)] * desc[2]
 
         elif tv is _tcInternal.tv_enum:
             enum_name = desc[1].split(':')[1].split('/')
@@ -130,11 +135,9 @@ del(_base)
 
 # RTT
 from _gen import RTT
-RTT.DEFAULT_POLICY = RTT.corba.CConnPolicy(
-    RTT.corba.CData, False, RTT.corba.CLockFree, False, 1, 1, 1, '')
 
 def create_default_policy():
-    return RTT.corba.CConnPolicy(RTT.corba.CData, False, RTT.corba.CLockFree, False, 1, 1, 1, '')
+    return RTT.corba.CConnPolicy(RTT.corba.CData, True, RTT.corba.CLockFree, False, 0, 1, 0, '')
 
 # init nameservice
 _orb = omniORB.CORBA.ORB_init([], omniORB.CORBA.ORB_ID)

@@ -3,7 +3,7 @@ import pyrock
 
 
 proxy = pyrock.TaskProxy('message_producer')
-proxy.subscriber('messages', lambda msg: print(msg.content, msg.time.__repr__()))
+proxy.subscriber('messages', lambda msg: print('[%s] %s' % (msg.time.to_str(), msg.content)))
 
 if not proxy.is_configured():
     proxy.configure()

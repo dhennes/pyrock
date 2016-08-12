@@ -24,7 +24,6 @@ class Subscriber:
         self.portname = portname
         self.callback = callback
         self.channel = channel
-        self.policy = policy
 
     def disconnect(self):
         self.channel.disconnect()
@@ -72,6 +71,7 @@ class TaskProxy(object):
         if portname in self.publishers.keys():
             return self.publishers[portname]
         channel, policy = self._task.ports().buildChannelOutput(portname, policy)
+        self._task.ports().channelReady(portname, channel, policy)
         pub = Publisher(portname, channel, policy)
         self.publishers[portname] = pub
         return pub
